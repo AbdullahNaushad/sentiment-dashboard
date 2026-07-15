@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+
+# Environment
+.env
+
+# ML Models and large datasets
+*.pkl
+backend/model/training_data.csv
+backend/model/training.1600000.processed.noemoticon.csv
+backend/model/train.csv
+
+# Misc
+New Text Document.txt
+*.csv
+node_modules/

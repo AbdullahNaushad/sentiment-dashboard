@@ -1,0 +1,122 @@
+{
+  "Logistic Regression": {
+    "cv_macro_f1": 0.7181,
+    "cv_std": 0.0018,
+    "test_macro_f1": 0.7293,
+    "per_class": {
+      "Negative": {
+        "precision": 0.7362,
+        "recall": 0.699,
+        "f1": 0.7171
+      },
+      "Neutral": {
+        "precision": 0.7284,
+        "recall": 0.8064,
+        "f1": 0.7654
+      },
+      "Positive": {
+        "precision": 0.7264,
+        "recall": 0.6855,
+        "f1": 0.7054
+      }
+    },
+    "confusion_matrix": [
+      [
+        4180,
+        811,
+        989
+      ],
+      [
+        600,
+        4807,
+        554
+      ],
+      [
+        898,
+        981,
+        4096
+      ]
+    ]
+  },
+  "Linear SVM": {
+    "cv_macro_f1": 0.7212,
+    "cv_std": 0.003,
+    "test_macro_f1": 0.7278,
+    "per_class": {
+      "Negative": {
+        "precision": 0.7389,
+        "recall": 0.6983,
+        "f1": 0.718
+      },
+      "Neutral": {
+        "precision": 0.7201,
+        "recall": 0.8098,
+        "f1": 0.7623
+      },
+      "Positive": {
+        "precision": 0.7294,
+        "recall": 0.6788,
+        "f1": 0.7032
+      }
+    },
+    "confusion_matrix": [
+      [
+        4176,
+        840,
+        964
+      ],
+      [
+        593,
+        4827,
+        541
+      ],
+      [
+        883,
+        1036,
+        4056
+      ]
+    ]
+  },
+  "Naive Bayes": {
+    "cv_macro_f1": 0.6842,
+    "cv_std": 0.0003,
+    "test_macro_f1": 0.6993,
+    "per_class": {
+      "Negative": {
+        "precision": 0.632,
+        "recall": 0.7833,
+        "f1": 0.6996
+      },
+      "Neutral": {
+        "precision": 0.9044,
+        "recall": 0.5762,
+        "f1": 0.704
+      },
+      "Positive": {
+        "precision": 0.6565,
+        "recall": 0.7369,
+        "f1": 0.6944
+      }
+    },
+    "confusion_matrix": [
+      [
+        4684,
+        156,
+        1140
+      ],
+      [
+        1362,
+        3435,
+        1164
+      ],
+      [
+        1365,
+        207,
+        4403
+      ]
+    ]
+  },
+  "_meta": {
+    "best_model": "Linear SVM"
+  }
+}
