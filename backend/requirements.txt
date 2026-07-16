@@ -1,22 +1,9 @@
-# Web Framework
-flask==3.0.3
-flask-cors==4.0.1
-
-# Environment variables
-python-dotenv==1.0.1
-
-# Machine Learning
-scikit-learn==1.5.0
-numpy==1.26.4
-
-# NLP
-nltk==3.8.1
-
-# Data Manipulation
-pandas==2.2.2
-
-# Database
-pymongo==4.7.3
-
-# Production server
-waitress==3.0.0
+flask
+flask-cors
+python-dotenv
+scikit-learn
+numpy
+nltk
+pandas
+pymongo
+gunicorn
