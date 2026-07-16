@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
 } from 'recharts';
 
-const API = 'http://localhost:5000';
+const API = 'https://sentiment-dashboard-api-production.up.railway.app';
 
 const COLORS = {
   Positive: '#22c55e',

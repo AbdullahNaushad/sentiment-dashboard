@@ -5,7 +5,7 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 
-const API = 'http://localhost:5000';
+const API = 'https://sentiment-dashboard-api-production.up.railway.app';
 
 const MODEL_COLORS = {
   'Logistic Regression': '#3b82f6',

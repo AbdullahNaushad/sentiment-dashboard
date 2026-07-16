@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = 'http://localhost:5000';
+const API = 'https://sentiment-dashboard-api-production.up.railway.app';
 
 const COLORS = {
   Positive: '#22c55e',

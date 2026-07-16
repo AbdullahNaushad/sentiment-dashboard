@@ -2,7 +2,6 @@ venv/
 __pycache__/
 *.pyc
 .env
-*.pkl
 model/training_data.csv
 model/training.1600000.processed.noemoticon.csv
 model/train.csv
