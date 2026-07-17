@@ -97,7 +97,7 @@ def preprocess_text(raw_text: str) -> str:
 
 # ─── Prediction ───────────────────────────────────────────────────────────────
 LABEL_MAP         = {0: "Negative", 1: "Neutral", 2: "Positive"}
-NEUTRAL_THRESHOLD = 0.55
+NEUTRAL_THRESHOLD = 0.40
 
 def predict_sentiment(raw_text: str) -> dict:
     if model is None or vectorizer is None:
