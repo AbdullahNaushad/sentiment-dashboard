@@ -42,7 +42,7 @@ function App() {
             </button>
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl overflow-hidden">
-                <img src={require('../logo.jpg')} alt="logo" className="w-full h-full object-cover" />
+                <img src={require('../Logo.jpg')} alt="logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-sm font-semibold">Sentiment AI</span>
             </div>
