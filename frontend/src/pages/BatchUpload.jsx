@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
 } from 'recharts';
 
-const API = 'https://sentiment-dashboard-api-production.up.railway.app';
+const API = 'http://localhost:5000';
 
 const COLORS = {
   Positive: '#22c55e',
@@ -157,7 +157,7 @@ export default function BatchUpload() {
       {results && (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <div className="text-2xl font-bold text-white">{results.total}</div>
               <div className="text-xs text-gray-400 mt-1">Total Tweets</div>
@@ -173,7 +173,7 @@ export default function BatchUpload() {
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {/* Donut Chart */}
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
               <div className="text-sm font-medium text-gray-300 mb-4">

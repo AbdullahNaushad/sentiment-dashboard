@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
-const API = 'https://sentiment-dashboard-api-production.up.railway.app';
+const API = 'http://localhost:5000';
 
 const COLORS = {
   Positive: '#22c55e',
@@ -129,7 +129,7 @@ export default function SingleAnalysis() {
           </div>
 
           {/* Donut Chart + Probabilities */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <div className="text-xs text-gray-400 mb-3">Probability Distribution</div>
               <ResponsiveContainer width="100%" height={180}>
