@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
-const API = 'http://localhost:5000';
+const API = 'https://sentiment-dashboard-api-production.up.railway.app';
 
 const COLORS = {
   Positive: '#22c55e',
