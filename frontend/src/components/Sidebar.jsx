@@ -14,12 +14,12 @@ export default function Sidebar({ onClose }) {
       {/* Logo + close button */}
       <div className="px-6 py-5 border-b border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-lg">
-            🐦
+          <div className="w-9 h-9 rounded-xl overflow-hidden">
+            <img src={require('../logo.jpg')} alt="logo" className="w-full h-full object-cover" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-white">Sentiment AI</div>
-            <div className="text-xs text-gray-400">Twitter Analysis</div>
+            <div className="text-sm font-semibold text-white">Sentiment Analysis On X</div>
+            <div className="text-xs text-gray-400">Using Machine Learning</div>
           </div>
         </div>
         {/* Close button — mobile only */}
