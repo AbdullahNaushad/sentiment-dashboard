@@ -41,8 +41,8 @@ function App() {
               ☰
             </button>
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl overflow-hidden">
-                <img src={require('../logo.jpg')} alt="logo" className="w-full h-full object-cover" />
+              <div className="w-7 h-7 rounded-lg overflow-hidden">
+                <img src={require('./logo.jpg')} alt="logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-sm font-semibold">Sentiment Analysis On X</span>
             </div>
