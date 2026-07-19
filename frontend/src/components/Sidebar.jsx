@@ -28,8 +28,8 @@ export default function Sidebar({ onClose }) {
             <img src={require('../logo.jpg')} alt="logo" className="w-full h-full object-cover" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-white">Sentiment AI</div>
-            <div className="text-xs text-gray-400">Twitter Analysis</div>
+            <div className="text-sm font-semibold text-white">Sentiment Analysis On X</div>
+            <div className="text-xs text-gray-400">Using Machine Learning</div>
           </div>
         </div>
         <button

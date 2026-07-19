@@ -85,7 +85,7 @@ function DashboardLayout() {
             <div className="w-7 h-7 rounded-lg overflow-hidden">
               <img src={require('./logo.jpg')} alt="logo" className="w-full h-full object-cover" />
             </div>
-            <span className="text-sm font-semibold">Sentiment AI</span>
+            <span className="text-sm font-semibold">Sentiment Analysis On X</span>
           </div>
         </div>
 
