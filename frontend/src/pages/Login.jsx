@@ -34,8 +34,8 @@ export default function Login() {
 
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-2xl mb-4">
-            🐦
+          <div className="w-14 h-14 rounded-2xl overflow-hidden mb-4">
+            <img src={require('../logo.jpg')} alt="logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-bold text-white">Welcome back</h1>
           <p className="text-gray-400 text-sm mt-1">Sign in to your Sentiment Analysis Dashboard account</p>
