@@ -7,3 +7,5 @@ nltk
 pandas
 pymongo
 gunicorn
+flask-jwt-extended
+bcrypt

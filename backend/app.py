@@ -1,6 +1,6 @@
 """
 Sentiment Analysis Dashboard - Flask Backend
-app.py: Core API with NLP pipeline and ML prediction routes
+app.py: Core API with NLP pipeline, ML prediction, and JWT Authentication
 """
 
 import os
@@ -8,12 +8,18 @@ import io
 import re
 import pickle
 import logging
-from datetime import datetime
+import json
+from datetime import datetime, timedelta
 
 import nltk
 import pandas as pd
+import bcrypt
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
+from flask_jwt_extended import (
+    JWTManager, create_access_token, jwt_required,
+    get_jwt_identity, get_jwt
+)
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
@@ -29,10 +35,15 @@ from nltk.stem import WordNetLemmatizer
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-8s  %(message)s")
 logger = logging.getLogger(__name__)
+
+# ─── JWT Configuration ────────────────────────────────────────────────────────
+app.config["JWT_SECRET_KEY"]       = os.getenv("JWT_SECRET_KEY", "jwt-super-secret-change-this")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
+jwt = JWTManager(app)
 
 # ─── MongoDB ──────────────────────────────────────────────────────────────────
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
@@ -42,12 +53,15 @@ try:
     mongo_client  = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3_000)
     mongo_client.server_info()
     db            = mongo_client[DB_NAME]
+    users_col     = db["users"]
     history_col   = db["analysis_history"]
     batch_log_col = db["batch_logs"]
+    # Create unique index on email
+    users_col.create_index("email", unique=True)
     logger.info("✅  MongoDB connected → %s", DB_NAME)
 except Exception as exc:
-    logger.warning("⚠️  MongoDB unavailable (%s). History features disabled.", exc)
-    db = history_col = batch_log_col = None
+    logger.warning("⚠️  MongoDB unavailable (%s). Auth features disabled.", exc)
+    db = users_col = history_col = batch_log_col = None
 
 # ─── Model Loading ─────────────────────────────────────────────────────────────
 MODEL_PATH      = os.getenv("MODEL_PATH",      "model/sentiment_model.pkl")
@@ -124,13 +138,127 @@ def predict_sentiment(raw_text: str) -> dict:
         "probabilities": {LABEL_MAP[i]: round(float(p), 4) for i, p in enumerate(proba)},
     }
 
-# ─── Routes ───────────────────────────────────────────────────────────────────
+# ─── Auth Routes ──────────────────────────────────────────────────────────────
+
+@app.route("/register", methods=["POST"])
+def register():
+    """Register a new user."""
+    if users_col is None:
+        return jsonify({"error": "Database not available."}), 503
+
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"error": "Request body required."}), 400
+
+    name     = str(payload.get("name", "")).strip()
+    email    = str(payload.get("email", "")).strip().lower()
+    password = str(payload.get("password", "")).strip()
+
+    if not name or not email or not password:
+        return jsonify({"error": "Name, email, and password are all required."}), 400
+
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters."}), 400
+
+    if "@" not in email:
+        return jsonify({"error": "Invalid email address."}), 400
+
+    # Check if email already exists
+    if users_col.find_one({"email": email}):
+        return jsonify({"error": "An account with this email already exists."}), 409
+
+    # Hash password
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+    user = {
+        "name":       name,
+        "email":      email,
+        "password":   hashed,
+        "created_at": datetime.utcnow(),
+    }
+    result = users_col.insert_one(user)
+
+    # Create JWT token
+    token = create_access_token(identity=str(result.inserted_id))
+
+    return jsonify({
+        "message": "Account created successfully.",
+        "token":   token,
+        "user": {"id": str(result.inserted_id), "name": name, "email": email},
+    }), 201
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    """Login with email and password."""
+    if users_col is None:
+        return jsonify({"error": "Database not available."}), 503
+
+    payload = request.get_json(silent=True)
+    if not payload:
+        return jsonify({"error": "Request body required."}), 400
+
+    email    = str(payload.get("email", "")).strip().lower()
+    password = str(payload.get("password", "")).strip()
+
+    if not email or not password:
+        return jsonify({"error": "Email and password are required."}), 400
+
+    user = users_col.find_one({"email": email})
+    if not user:
+        return jsonify({"error": "Invalid email or password."}), 401
+
+    if not bcrypt.checkpw(password.encode("utf-8"), user["password"]):
+        return jsonify({"error": "Invalid email or password."}), 401
+
+    token = create_access_token(identity=str(user["_id"]))
+
+    return jsonify({
+        "message": "Login successful.",
+        "token":   token,
+        "user": {
+            "id":    str(user["_id"]),
+            "name":  user["name"],
+            "email": user["email"],
+        },
+    }), 200
+
+
+@app.route("/me", methods=["GET"])
+@jwt_required()
+def get_me():
+    """Get current logged-in user info."""
+    if users_col is None:
+        return jsonify({"error": "Database not available."}), 503
+
+    from bson import ObjectId
+    user_id = get_jwt_identity()
+    user    = users_col.find_one({"_id": ObjectId(user_id)}, {"password": 0})
+
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+
+    return jsonify({
+        "id":    str(user["_id"]),
+        "name":  user["name"],
+        "email": user["email"],
+    }), 200
+
+
+# ─── Core Routes ──────────────────────────────────────────────────────────────
+
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status":"ok","model_ready":model is not None,
-                    "db_ready":db is not None,"timestamp":datetime.utcnow().isoformat()})
+    return jsonify({
+        "status":      "ok",
+        "model_ready": model is not None,
+        "db_ready":    db is not None,
+        "timestamp":   datetime.utcnow().isoformat(),
+    })
+
 
 @app.route("/analyze-single", methods=["POST"])
+@jwt_required()
 def analyze_single():
     payload  = request.get_json(silent=True)
     if not payload or "text" not in payload:
@@ -142,14 +270,24 @@ def analyze_single():
         result = predict_sentiment(raw_text)
     except RuntimeError as exc:
         return jsonify({"error": str(exc)}), 503
+
+    # Save with user_id
     if history_col is not None:
         try:
-            history_col.insert_one({**result, "created_at": datetime.utcnow()})
+            user_id = get_jwt_identity()
+            history_col.insert_one({
+                **result,
+                "user_id":    user_id,
+                "created_at": datetime.utcnow()
+            })
         except Exception as exc:
             logger.warning("DB write failed: %s", exc)
+
     return jsonify(result), 200
 
+
 @app.route("/analyze-batch", methods=["POST"])
+@jwt_required()
 def analyze_batch():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded. Use field name 'file'."}), 400
@@ -163,24 +301,37 @@ def analyze_batch():
     col_map  = {c.lower(): c for c in df.columns}
     text_col = col_map.get("text") or col_map.get("tweet")
     if text_col is None:
-        return jsonify({"error": "CSV must contain a column named 'text' or 'tweet'.",
-                        "found_columns": list(df.columns)}), 422
+        return jsonify({
+            "error": "CSV must contain a column named 'text' or 'tweet'.",
+            "found_columns": list(df.columns),
+        }), 422
     try:
         results = [predict_sentiment(str(t)) for t in df[text_col].fillna("")]
     except RuntimeError as exc:
         return jsonify({"error": str(exc)}), 503
+
     summary = {"Positive": 0, "Negative": 0, "Neutral": 0}
     for r in results:
         summary[r["sentiment"]] += 1
+
     if batch_log_col is not None:
         try:
-            batch_log_col.insert_one({"filename":uploaded.filename,"total":len(results),
-                                      "summary":summary,"created_at":datetime.utcnow()})
+            user_id = get_jwt_identity()
+            batch_log_col.insert_one({
+                "filename":   uploaded.filename,
+                "total":      len(results),
+                "summary":    summary,
+                "user_id":    user_id,
+                "created_at": datetime.utcnow(),
+            })
         except Exception as exc:
             logger.warning("Batch DB write failed: %s", exc)
+
     return jsonify({"total": len(results), "results": results, "summary": summary}), 200
 
+
 @app.route("/export-csv", methods=["POST"])
+@jwt_required()
 def export_csv():
     payload = request.get_json(silent=True)
     if not payload or "results" not in payload:
@@ -196,27 +347,38 @@ def export_csv():
     buf = io.StringIO()
     df.to_csv(buf, index=False)
     buf.seek(0)
-    return send_file(io.BytesIO(buf.getvalue().encode("utf-8")), mimetype="text/csv",
-                     as_attachment=True,
-                     download_name=f"sentiment_results_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv")
+    return send_file(
+        io.BytesIO(buf.getvalue().encode("utf-8")),
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=f"sentiment_results_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
+    )
+
 
 @app.route("/history", methods=["GET"])
+@jwt_required()
 def get_history():
     if history_col is None:
         return jsonify({"error": "Database not available."}), 503
-    limit = min(int(request.args.get("limit", 50)), 200)
-    docs  = list(history_col.find({}, {"_id": 0}).sort("created_at", -1).limit(limit))
+    user_id = get_jwt_identity()
+    limit   = min(int(request.args.get("limit", 50)), 200)
+    docs    = list(
+        history_col.find({"user_id": user_id}, {"_id": 0})
+        .sort("created_at", -1)
+        .limit(limit)
+    )
     return jsonify({"count": len(docs), "history": docs}), 200
+
 
 @app.route("/model-comparison", methods=["GET"])
 def model_comparison():
-    import json
     json_path = "model/model_comparison.json"
     if not os.path.exists(json_path):
         return jsonify({"error": "Run train_model.py first."}), 404
     with open(json_path) as f:
         data = json.load(f)
     return jsonify(data), 200
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
